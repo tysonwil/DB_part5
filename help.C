@@ -30,11 +30,33 @@ const Status RelCatalog::help(const string & relation)
   Status status;
   RelDesc rd;
   AttrDesc *attrs;
-  int attrCnt;
+  int attrCnt, i;
 
   if (relation.empty()) return UT_Print(RELCATNAME);
 
+  if((status = getInfo(relation, rd)) != OK){
+  	return status;
+  }
+  if((status = attrCat->getRelInfo(relation, attrCnt, attrs)) != OK){
+  	return status;
+  }
 
+  cout << "Relation: " << rd.relName << " Attributes: " << rd.attrCnt << endl;
+  cout << "Attribute | Offset | Type | Length" << endl;
+  for(i = 0; i < attrCnt; i++){
+  	cout << attrs[i].attrName << " | ";
+  	cout << attrs[i].attrOffset << " | ";
+  	if(attrs[i].attrType == STRING){
+  		cout << "STRING | ";
+  	}
+  	if(attrs[i].attrType == INTEGER){
+  		cout << "INTEGER | ";
+  	}
+  	if(attrs[i].attrType == FLOAT){
+  		cout << "FLOAT | ";
+  	}
+  	cout << attrs[i].attrLen << endl;
+  } 
 
   return OK;
 }
