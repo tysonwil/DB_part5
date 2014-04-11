@@ -59,16 +59,19 @@ const Status RelCatalog::removeInfo(const string & relation)
 
   if (relation.empty()) return BADCATPARM;
 
-  HeapFileScan *heapScan = new HeapFileScan(RELCATNAME, status);
+  hfs = new HeapFileScan(RELCATNAME, status);
 
-  if((status = heapScan->startScan(0, relation.length() + 1, STRING, relation.c_str(), EQ)) != OK){
+  if((status = hfs->startScan(0, relation.length() + 1, STRING, relation.c_str(), EQ)) != OK){
     return status;
   }
-  if((status = heapScan->scanNext(rid)) != OK){
+  if((status = hfs->scanNext(rid)) != OK){
+      if(status == NORECORDS){
+        status = OK;
+      }
     return status;
   }
 
-  status = heapScan->deleteRecord();
+  status = hfs->deleteRecord();
   return status;
 }
 
@@ -104,13 +107,13 @@ const Status AttrCatalog::getInfo(const string & relation,
   }
 
   while(status == OK){
-    if((status = heapScan->scanNext(rid)) != OK){
+    if((status = hfs->scanNext(rid)) != OK){
       return status;
     }
-    if((status = heapScan->getRecord(rec)) != OK){
+    if((status = hfs->getRecord(rec)) != OK){
       return status;
     }
-    memcpy((void*)&record, rec.data);
+    memcpy((void*)&record, rec.data, rec.length);
     if(strcmp(record.attrName, attrName.c_str()) == 0){
         return status;
     }
@@ -130,7 +133,7 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
   ifs = new InsertFileScan(ATTRCATNAME, status);
   rec.data = &record;
   rec.length = sizeof(AttrDesc);
-  status = ifs->insertRecord(rec, rid)
+  status = ifs->insertRecord(rec, rid);
   
   return status;
 }
@@ -153,10 +156,13 @@ const Status AttrCatalog::removeInfo(const string & relation,
   }
 
   while(status == OK){
-    if((status = heapScan->scanNext(rid)) != OK){
+    if((status = hfs->scanNext(rid)) != OK){
       return status;
     }
-    if((status = heapScan->getRecord(rec)) != OK){
+    if((status = hfs->getRecord(rec)) != OK){
+      if(status == NORECORDS){
+        status = OK;
+      }
       return status;
     }
     if(strcmp(record.attrName, attrName.c_str()) == 0){
@@ -187,9 +193,9 @@ const Status AttrCatalog::getRelInfo(const string & relation,
   }
 
   attrCnt = recDesc.attrCnt;
-  attrList = new AttrDesc[attrCnt];
+  attrs = new AttrDesc[attrCnt];
 
-  attrList = (AttrDesc*) malloc(attrCnt * sizeof(AttrDesc));
+  //attrs = (AttrDesc*) malloc(attrCnt * sizeof(AttrDesc));
 
   if((status = hfs->startScan(0, relation.length() + 1, STRING, relation.c_str(), EQ)) != OK){
     return status;
@@ -202,7 +208,10 @@ const Status AttrCatalog::getRelInfo(const string & relation,
     if((status = hfs->getRecord(rec)) != OK){
       return status;
     }
-    memcpy(&attrList[i], rec.data, rec.length);
+    memcpy(&attrs[i], rec.data, rec.length);
+  }
+  if(status == FILEEOF){
+    status = OK;
   }
 
   return status;

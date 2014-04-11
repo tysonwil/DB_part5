@@ -16,7 +16,7 @@ const Status RelCatalog::createRel(const string & relation,
   if (relation.length() >= sizeof rd.relName)
     return NAMETOOLONG;
 
-	if((status = getInfo(relation)) != OK){
+	if((status = getInfo(relation, rd)) != OK){
 		return status;
 	}
 
