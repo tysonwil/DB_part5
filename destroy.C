@@ -61,7 +61,6 @@ const Status AttrCatalog::dropRelation(const string & relation)
     }
   }
   return status;
-
 }
 
 
