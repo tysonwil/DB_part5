@@ -22,6 +22,7 @@ const Status UT_Load(const string & relation, const string & fileName)
   InsertFileScan * iFile;
   int width = 0;
   int records = 0;
+
   if (relation.empty() || fileName.empty() || relation == string(RELCATNAME)
       || relation == string(ATTRCATNAME))
     return BADCATPARM;
@@ -32,29 +33,30 @@ const Status UT_Load(const string & relation, const string & fileName)
   if ((fd = open(fileName.c_str(), O_RDONLY, 0)) < 0)
     return UNIXERR;
 
-  // get relation data
+  status = relCat->getInfo(relation, rd);
+  if (status != OK) return status;
 
-
-
+  status = attrCat->getRelInfo(rd.relName, attrCnt, attrs);
+  if (status != OK) return status;
 
   // start insertFileScan on relation
+  iFile = new InsertFileScan(rd.relName, status);
+  if (status != OK) return status;
 
-
-
-
-
-
-
+  // compute width
+  for (i = 0; i < attrCnt; i++) {
+    width += attrs[i].attrLen;
+  }
 
   // allocate buffer to hold record read from unix file
   char *record;
-  if (!(record = new char [width])) return INSUFMEM;
+  if (!(record = new char[width])) return INSUFMEM;
 
   int nbytes;
   Record rec;
 
   // read next input record from Unix file and insert it into relation
-  while((nbytes = read(fd, record, width)) == width) {
+  while ((nbytes = read(fd, record, width)) == width) {
     RID rid;
     rec.data = record;
     rec.length = width;
@@ -63,10 +65,9 @@ const Status UT_Load(const string & relation, const string & fileName)
   }
 
   // close heap file and unix file
+  delete iFile;
   if (close(fd) < 0) return UNIXERR;
 
-
-
-
+  return OK;
 }
 
