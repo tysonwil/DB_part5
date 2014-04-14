@@ -34,12 +34,19 @@ const Status RelCatalog::help(const string & relation)
 
   if (relation.empty()) return UT_Print(RELCATNAME);
 
+  // Get the relation catalog info for the relation
+
   if((status = getInfo(relation, rd)) != OK){
   	return status;
   }
+
+  // Get the attribute catalog data for each attribute
+
   if((status = attrCat->getRelInfo(relation, attrCnt, attrs)) != OK){
   	return status;
   }
+
+  // Print the relation and all of the attributes
 
   cout << "Relation: " << rd.relName << " Attributes: " << rd.attrCnt << endl;
   cout << "Attribute | Offset | Type | Length" << endl;

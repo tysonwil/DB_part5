@@ -1,6 +1,8 @@
 #include "catalog.h"
 
 
+// Creates a relational table using relation, attrCnt, attrList[]
+// Returns an OK status if it was create successfully
 const Status RelCatalog::createRel(const string & relation, 
 				   const int attrCnt,
 				   const attrInfo attrList[])
@@ -17,11 +19,14 @@ const Status RelCatalog::createRel(const string & relation,
     	return NAMETOOLONG;
 
     // Does the relation already exist?
+
     status = getInfo(relation, rd);
     if (status == OK)
     	return RELEXISTS;
     else if (status != RELNOTFOUND)
     	return status;
+
+    // Check for Data Size and Duplicate Attributes
 
     dataSize = 0;
 
@@ -36,9 +41,13 @@ const Status RelCatalog::createRel(const string & relation,
     	}
     }
 
+    // Date Size too Large
+
     if(dataSize > PAGESIZE){
     	return ATTRTOOLONG;
     }
+
+    // Initalize RelDesc
 
     strcpy(rd.relName, relation.c_str());
 	rd.attrCnt = attrCnt;
@@ -49,6 +58,8 @@ const Status RelCatalog::createRel(const string & relation,
 
 	offset = 0;
 	
+	// Copy in Attributes into AttrDesc
+
 	for (i = 0; i < attrCnt; i++) {
 		strcpy(ad.attrName, attrList[i].attrName);
 		ad.attrType = attrList[i].attrType;
@@ -61,6 +72,9 @@ const Status RelCatalog::createRel(const string & relation,
 		if ((status = attrCat->addInfo(ad)) != OK)
 			return status;
 	}
+
+	// Create HeapFile
+
 	status = createHeapFile(relation);
 	return status;
 }

@@ -20,12 +20,20 @@ const Status RelCatalog::destroyRel(const string & relation)
       relation == string(ATTRCATNAME))
     return BADCATPARM;
 
+  // Delete the Relations (Attributes)
+
 	if ((status = attrCat->dropRelation(relation)) != OK) {
 		return status;
 	}
+
+  // Removes the Relation (Table)
+
 	if((status = removeInfo(relation)) != OK){
 		return status;
 	}
+
+  // Destroy the Heapfile (Data)
+
 	if((status = destroyHeapFile(relation)) != OK){
 		return status;
 	}
@@ -51,13 +59,16 @@ const Status AttrCatalog::dropRelation(const string & relation)
 
   if (relation.empty()) return BADCATPARM;
 
+  // Get Relation Info for attrCnt and attrs
+
   if((status = attrCat->getRelInfo(relation, attrCnt, attrs)) != OK) {
     return status;
   }
 
+  // Delete each individual relation attribute
+
   for(i = 0; i < attrCnt; i++){
     if((status = attrCat->removeInfo(relation, attrs[i].attrName)) != OK){
-      if(status == RELNOTFOUND) return OK;
     	return status;
     }
   }

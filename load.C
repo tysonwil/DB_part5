@@ -33,8 +33,12 @@ const Status UT_Load(const string & relation, const string & fileName)
   if ((fd = open(fileName.c_str(), O_RDONLY, 0)) < 0)
     return UNIXERR;
 
+  // get the relationship catalog data for relationship
+
   status = relCat->getInfo(relation, rd);
   if (status != OK) return status;
+
+  // get the attribute catalog data for each attribute
 
   status = attrCat->getRelInfo(rd.relName, attrCnt, attrs);
   if (status != OK) return status;
