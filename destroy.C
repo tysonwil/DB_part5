@@ -57,6 +57,7 @@ const Status AttrCatalog::dropRelation(const string & relation)
 
   for(i = 0; i < attrCnt; i++){
     if((status = attrCat->removeInfo(relation, attrs[i].attrName)) != OK){
+      if(status == RELNOTFOUND) return OK;
     	return status;
     }
   }
